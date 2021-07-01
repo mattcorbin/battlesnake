@@ -1,11 +1,11 @@
 #[macro_use]
 extern crate rocket;
 
-use rand::{Rng, thread_rng};
+use rand::Rng;
 use rocket::http::Status;
 use rocket::response::{content, status};
-use rocket::serde::{Deserialize, Serialize};
 use rocket::serde::json::Json;
+use rocket::serde::{Deserialize, Serialize};
 
 #[derive(Debug, Serialize, Deserialize)]
 struct Game {
@@ -45,6 +45,7 @@ struct BattlesnakeInfoResponse {
     color: String,
     head: String,
     tail: String,
+    version: String,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -70,11 +71,13 @@ fn index() -> status::Custom<content::Json<String>> {
         color: "#092de3".to_string(),
         head: "pixel".to_string(),
         tail: "pixel".to_string(),
+        version: "0.0.1".to_string(),
     };
     status::Custom(
         Status::Ok,
         content::Json(
-            serde_json::to_string(&battlesnake_info_response).expect("failed to serialize battlesnake info response")
+            serde_json::to_string(&battlesnake_info_response)
+                .expect("failed to serialize battlesnake info response"),
         ),
     )
 }
@@ -102,7 +105,8 @@ fn mv(game_request: Json<GameRequest>) -> status::Custom<content::Json<String>> 
     };
     status::Custom(
         Status::Ok,
-        content::Json(serde_json::to_string(&move_response).expect("failed to serialize move response")
+        content::Json(
+            serde_json::to_string(&move_response).expect("failed to serialize move response"),
         ),
     )
 }
@@ -114,9 +118,5 @@ fn end(game_request: Json<GameRequest>) {
 
 #[launch]
 fn rocket() -> _ {
-    rocket::build()
-        .mount("/", routes![index])
-        .mount("/start", routes![start])
-        .mount("/move", routes![mv])
-        .mount("/end", routes![end])
+    rocket::build().mount("/", routes![index, start, mv, end])
 }
