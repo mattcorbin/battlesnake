@@ -1,11 +1,15 @@
 #[macro_use]
 extern crate rocket;
 
-use rand::Rng;
 use rocket::http::Status;
 use rocket::response::{content, status};
 use rocket::serde::json::Json;
 use rocket::serde::{Deserialize, Serialize};
+use rocket::{Build, Rocket};
+
+use crate::moves::*;
+
+mod moves;
 
 #[derive(Debug, Serialize, Deserialize)]
 struct Game {
@@ -49,7 +53,7 @@ struct BattlesnakeInfoResponse {
 }
 
 #[derive(Debug, Serialize, Deserialize)]
-struct GameRequest {
+pub struct GameRequest {
     game: Game,
     turn: isize,
     board: Board,
@@ -82,27 +86,14 @@ fn index() -> status::Custom<content::Json<String>> {
     )
 }
 
-#[post("/start", format = "json", data = "<game_request>")]
-fn start(game_request: Json<GameRequest>) {
-    println!("{:?}", game_request)
-}
+#[post("/start", format = "json", data = "<_game_request>")]
+fn start(_game_request: Json<GameRequest>) {}
 
 #[post("/move", format = "json", data = "<game_request>")]
 fn mv(game_request: Json<GameRequest>) -> status::Custom<content::Json<String>> {
-    println!("{:?}", game_request);
-    let mut rng = rand::thread_rng();
-    let moves = vec![
-        "up".to_string(),
-        "down".to_string(),
-        "left".to_string(),
-        "right".to_string(),
-    ];
-    let index: usize = rng.gen_range(0..4);
-    println!("move: {}", moves[index]);
-    let move_response = MoveResponse {
-        mv: moves[index].clone(),
-        shout: None,
-    };
+    let mv = compute_move(game_request.into_inner());
+    println!("move: {}", mv);
+    let move_response = MoveResponse { mv, shout: None };
     status::Custom(
         Status::Ok,
         content::Json(
@@ -111,12 +102,10 @@ fn mv(game_request: Json<GameRequest>) -> status::Custom<content::Json<String>> 
     )
 }
 
-#[post("/end", format = "json", data = "<game_request>")]
-fn end(game_request: Json<GameRequest>) {
-    println!("{:?}", game_request)
-}
+#[post("/end", format = "json", data = "<_game_request>")]
+fn end(_game_request: Json<GameRequest>) {}
 
 #[launch]
-fn rocket() -> _ {
+fn rocket() -> Rocket<Build> {
     rocket::build().mount("/", routes![index, start, mv, end])
 }
