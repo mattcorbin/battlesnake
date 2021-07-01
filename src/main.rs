@@ -18,7 +18,7 @@ struct Game {
 }
 
 #[derive(Debug, Serialize, Deserialize)]
-struct Coord {
+pub struct Coord {
     x: isize,
     y: isize,
 }
