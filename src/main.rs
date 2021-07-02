@@ -108,7 +108,7 @@ fn start(_game_request: Json<GameRequest>) {}
 
 #[post("/move", format = "json", data = "<game_request>")]
 fn mv(game_request: Json<GameRequest>) -> status::Custom<content::Json<String>> {
-    let mv = compute_move(game_request.into_inner());
+    let mv = compute_move(&game_request.into_inner());
     println!("move: {}", mv);
     let move_response = MoveResponse { mv, shout: None };
     status::Custom(
