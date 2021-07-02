@@ -3,15 +3,13 @@ name: Rust
 on:
   push:
     branches: [ main ]
-  pull_request:
-    branches: [ main ]
 
 env:
   CARGO_TERM_COLOR: always
 
 jobs:
-  build:
-
+  build-and-publish:
+  
     runs-on: ubuntu-latest
 
     steps:
