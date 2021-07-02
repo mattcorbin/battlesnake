@@ -10,52 +10,48 @@ struct Directions {
     left: bool,
 }
 
-fn find_move(moves: Vec<&str>, directions: Directions) -> String {
-    println!("{:?}\n{:?}\n", moves, directions);
+fn list_of_potential_directions(potential_directions: Directions) -> Vec<&'static str> {
+    let mut moves = Vec::new();
+    if potential_directions.up {
+        moves.push("up");
+    }
+    if potential_directions.down {
+        moves.push("down");
+    }
+    if potential_directions.left {
+        moves.push("left");
+    }
+    if potential_directions.right {
+        moves.push("right");
+    }
+    return moves
+}
+
+fn find_move(moves: Vec<&str>, potential_directions: Directions) -> String {
+    println!("{:?}\n{:?}\n", moves, potential_directions);
     let mut rng = rand::thread_rng();
-    if moves.len() == 0 {
+    let possible_directions = list_of_potential_directions(potential_directions);
+
+    if possible_directions.len() == 0 {
         // we ded
         return "up".to_string();
     }
-    let index: usize = rng.gen_range(0..moves.len());
-    let mv = moves[index].clone();
-    let move_selection;
+    let mv = possible_directions[rng.gen_range(0..possible_directions.len())];
     match mv {
         "up" => {
-            if directions.up {
-                move_selection = mv.to_string();
-            } else {
-                let new_moves: Vec<&str> = moves.into_iter().filter(|&item| item != mv).collect();
-                move_selection = find_move(new_moves, directions);
-            }
+            return mv.to_string();
         }
         "down" => {
-            if directions.down {
-                move_selection = mv.to_string();
-            } else {
-                let new_moves: Vec<&str> = moves.into_iter().filter(|&item| item != mv).collect();
-                move_selection = find_move(new_moves, directions);
-            }
+            return mv.to_string();
         }
         "right" => {
-            if directions.right {
-                move_selection = mv.to_string();
-            } else {
-                let new_moves: Vec<&str> = moves.into_iter().filter(|&item| item != mv).collect();
-                move_selection = find_move(new_moves, directions);
-            }
+            return mv.to_string();
         }
         "left" => {
-            if directions.left {
-                move_selection = mv.to_string();
-            } else {
-                let new_moves: Vec<&str> = moves.into_iter().filter(|&item| item != mv).collect();
-                move_selection = find_move(new_moves, directions);
-            }
+            return mv.to_string();
         }
-        _ => move_selection = "up".to_string(),
+        _ => return "up".to_string(),
     }
-    return move_selection;
 }
 
 fn nearby(head_loc: &Coord, coord: &Coord) -> bool {
@@ -73,7 +69,7 @@ fn nearby(head_loc: &Coord, coord: &Coord) -> bool {
 
 pub fn compute_move(game: GameRequest) -> String {
     let moves = vec!["up", "down", "left", "right"];
-    let mut directions = Directions {
+    let mut potential_directions = Directions {
         up: true,
         down: true,
         right: true,
@@ -82,19 +78,19 @@ pub fn compute_move(game: GameRequest) -> String {
     let head_loc = game.you.head;
     if head_loc.x == 0 {
         println!("left false due to border");
-        directions.left = false
+        potential_directions.left = false
     }
     if head_loc.x == game.board.width - 1 {
         println!("right false due to border");
-        directions.right = false
+        potential_directions.right = false
     }
     if head_loc.y == 0 {
         println!("down false due to border");
-        directions.down = false
+        potential_directions.down = false
     }
     if head_loc.y == game.board.height - 1 {
         println!("up false due to border");
-        directions.up = false
+        potential_directions.up = false
     }
     for snake in game.board.snakes {
         for segment in snake.body {
@@ -103,31 +99,31 @@ pub fn compute_move(game: GameRequest) -> String {
             }
             if head_loc.x - segment.x == 1 {
                 println!("left false due to snake");
-                directions.left = false
+                potential_directions.left = false
             } else if head_loc.x - segment.x == -1 {
                 println!("right false due to snake");
-                directions.right = false
+                potential_directions.right = false
             }
             if head_loc.y - segment.y == 1 {
                 println!("down false due to snake");
-                directions.down = false
+                potential_directions.down = false
             } else if head_loc.y - segment.y == -1 {
                 println!("up false due to snake");
-                directions.up = false
+                potential_directions.up = false
             }
         }
         if game.you.length > snake.length && game.you.id != snake.id {
             if head_loc.x - snake.head.x == 1 {
-                directions.left = true
+                potential_directions.left = true
             } else if head_loc.x - snake.head.x == -1 {
-                directions.right = true
+                potential_directions.right = true
             }
             if head_loc.y - snake.head.y == 1 {
-                directions.down = true
+                potential_directions.down = true
             } else if head_loc.y - snake.head.y == -1 {
-                directions.up = true
+                potential_directions.up = true
             }
         }
     }
-    find_move(moves, directions)
+    find_move(moves, potential_directions)
 }
