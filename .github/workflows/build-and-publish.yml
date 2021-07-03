@@ -26,9 +26,6 @@ jobs:
         name: battlesnake
         path: target/x86_64-unknown-linux-musl/release/battlesnake
 
-  curl:
-    runs-on: ubuntu-latest
-    steps:
     - name: put latest binary on repl server
       uses: wei/curl@v1
       with:
