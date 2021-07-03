@@ -115,8 +115,8 @@ fn mv(game_request: Json<GameRequest>) -> status::Custom<content::Json<String>> 
     let mut rng = thread_rng();
     let mut shout = None;
     if rng.gen_range(0..49) == 0 {
-        shout = Some("Hiss!".to_owned());
-        println!("move: {}", shout.as_deref().unwrap());
+        shout = Some("Hiss!".to_string());
+        println!("{}", shout.as_deref().unwrap());
     }
     let move_response = MoveResponse { mv, shout: shout };
     status::Custom(
