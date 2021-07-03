@@ -25,3 +25,13 @@ jobs:
       with:
         name: battlesnake
         path: target/x86_64-unknown-linux-musl/release/battlesnake
+
+  curl:
+    runs-on: ubuntu-latest
+    steps:
+    - name: put latest binary on repl server
+      uses: wei/curl@v1
+      with:
+        args: -F ' target/x86_64-unknown-linux-musl/release/battlesnake' -X POST https://bin.battlesnakehost.naxoe.repl.co/~testing
+
+        
