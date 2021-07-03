@@ -20,10 +20,6 @@ jobs:
       run: cargo build --verbose --release --target x86_64-unknown-linux-musl
     - name: Run tests
       run: cargo test --verbose --release --target x86_64-unknown-linux-musl
-      
-  curl:
-    runs-on: ubuntu-latest
-    steps:
     - name: put latest binary on repl server
       uses: wei/curl@v1
       with:
