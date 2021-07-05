@@ -1,146 +1,38 @@
-use rand::Rng;
+use petgraph::algo::astar;
+use petgraph::graphmap::UnGraphMap;
 
-use crate::{Coord, GameRequest};
+use crate::graph::{calculate_weight, is_goal, Space, SpaceType};
+use crate::GameRequest;
 
-#[derive(Debug)]
-struct Directions {
-    up: bool,
-    down: bool,
-    right: bool,
-    left: bool,
+pub enum Direction {
+    Up,
+    Down,
+    Left,
+    Right,
 }
 
-impl Directions {
-    fn valid_directions(&self) -> Vec<&'static str> {
-        let mut moves = Vec::new();
-        if self.up {
-            moves.push("up");
-        }
-        if self.down {
-            moves.push("down");
-        }
-        if self.left {
-            moves.push("left");
-        }
-        if self.right {
-            moves.push("right");
-        }
-        return moves
-    }
-}
-
-fn find_move(moves: Vec<&str>, potential_directions: Directions, _game: &GameRequest) -> String {
-    println!("{:?}\n{:?}\n", moves, potential_directions);
-    let mut rng = rand::thread_rng();
-    let possible_directions = potential_directions.valid_directions();
-
-    if possible_directions.len() == 0 {
-        // we ded
-        return "up".to_string();
-    }
-
-    if possible_directions.len() == 1 {
-        // we straight outta options
-        return possible_directions[0].to_string();
-    }
-
-    // We have at least two spaces available to move to so pick one at random
-    return possible_directions[rng.gen_range(0..possible_directions.len())].to_string();
-}
-
-fn is_adjacent(head_loc: &Coord, coord: &Coord) -> bool {
-    if head_loc.x == coord.x {
-        if (head_loc.y - coord.y).abs() == 1 {
-            return true;
-        }
-    } else if head_loc.y == coord.y {
-        if (head_loc.x - coord.x).abs() == 1 {
-            return true;
+impl ToString for Direction {
+    fn to_string(&self) -> String {
+        match self {
+            Direction::Up => String::from("up"),
+            Direction::Down => String::from("down"),
+            Direction::Left => String::from("left"),
+            Direction::Right => String::from("right"),
         }
     }
-    false
 }
 
 pub fn compute_move(game: &GameRequest) -> String {
-    let moves = vec!["up", "down", "left", "right"];
-    let mut potential_directions = Directions {
-        up: true,
-        down: true,
-        right: true,
-        left: true,
+    let graph = UnGraphMap::from(&game.board);
+    let start = Space {
+        location: game.you.head,
+        space_type: SpaceType::Occupied,
     };
-    let head_loc = &game.you.head;
-    if head_loc.x == 0 {
-        println!("left false due to border");
-        potential_directions.left = false
-    }
-    if head_loc.x == game.board.width - 1 {
-        println!("right false due to border");
-        potential_directions.right = false
-    }
-    if head_loc.y == 0 {
-        println!("down false due to border");
-        potential_directions.down = false
-    }
-    if head_loc.y == game.board.height - 1 {
-        println!("up false due to border");
-        potential_directions.up = false
-    }
-    for snake in &game.board.snakes {
-        for segment in &snake.body {
-            if !is_adjacent(&head_loc, &segment) {
-                continue;
-            }
-            if head_loc.x - segment.x == 1 {
-                println!("left false due to snake");
-                potential_directions.left = false
-            } else if head_loc.x - segment.x == -1 {
-                println!("right false due to snake");
-                potential_directions.right = false
-            }
-            if head_loc.y - segment.y == 1 {
-                println!("down false due to snake");
-                potential_directions.down = false
-            } else if head_loc.y - segment.y == -1 {
-                println!("up false due to snake");
-                potential_directions.up = false
-            }
+    match astar(&graph, start, is_goal, calculate_weight, |_| 0) {
+        Some(path) => {
+            println!("{:?}", path);
+            path.1[0].determine_direction(&path.1[1]).to_string()
         }
-        if game.you.length > snake.length && game.you.id != snake.id {
-            if head_loc.x - snake.head.x == 1 {
-                potential_directions.left = true
-            } else if head_loc.x - snake.head.x == -1 {
-                potential_directions.right = true
-            }
-            if head_loc.y - snake.head.y == 1 {
-                potential_directions.down = true
-            } else if head_loc.y - snake.head.y == -1 {
-                potential_directions.up = true
-            }
-        }
+        None => Direction::Up.to_string(),
     }
-
-    //  If the head of a Battlesnake is within the Hazard Sauce,
-    // its health points will more rapidly decline, losing 15 health each turn.
-    // So you don't have to strictly avoid it but lets strictly try to avoid it
-    for hazard in &game.board.hazards {
-        if !is_adjacent(&head_loc, &hazard) {
-            continue;
-        }
-        if head_loc.x - hazard.x == 1 {
-            println!("left false due to hazard");
-            potential_directions.left = false
-        } else if head_loc.x - hazard.x == -1 {
-            println!("right false due to hazard");
-            potential_directions.right = false
-        }
-        if head_loc.y - hazard.y == 1 {
-            println!("down false due to hazard");
-            potential_directions.down = false
-        } else if head_loc.y - hazard.y == -1 {
-            println!("up false due to hazard");
-            potential_directions.up = false
-        }
-    }
-    find_move(moves, potential_directions, &game)
 }

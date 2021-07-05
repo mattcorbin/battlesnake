@@ -1,16 +1,16 @@
 #[macro_use]
 extern crate rocket;
 
+use rand::{thread_rng, Rng};
 use rocket::http::Status;
 use rocket::response::{content, status};
 use rocket::serde::json::Json;
 use rocket::serde::{Deserialize, Serialize};
 use rocket::{Build, Rocket};
 
-use rand::{thread_rng, Rng};
-
 use crate::moves::*;
 
+mod graph;
 mod moves;
 
 //     Y
@@ -36,7 +36,7 @@ struct Game {
     timeout: i32,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Hash, Clone, Copy, PartialEq, Eq, Ord, PartialOrd)]
 pub struct Coord {
     x: isize,
     y: isize,
@@ -111,6 +111,7 @@ fn start(_game_request: Json<GameRequest>) {}
 
 #[post("/move", format = "json", data = "<game_request>")]
 fn mv(game_request: Json<GameRequest>) -> status::Custom<content::Json<String>> {
+    println!("move request");
     let mv = compute_move(&game_request.into_inner());
     println!("move: {}", mv);
     let mut rng = thread_rng();
@@ -119,7 +120,7 @@ fn mv(game_request: Json<GameRequest>) -> status::Custom<content::Json<String>> 
         shout = Some("Hiss!".to_string());
         println!("{}", shout.as_deref().unwrap());
     }
-    let move_response = MoveResponse { mv, shout: shout };
+    let move_response = MoveResponse { mv, shout };
     status::Custom(
         Status::Ok,
         content::Json(
