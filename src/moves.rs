@@ -29,10 +29,7 @@ pub fn compute_move(game: &GameRequest) -> String {
         space_type: SpaceType::Occupied,
     };
     match astar(&graph, start, is_goal, calculate_weight, |_| 0) {
-        Some(path) => {
-            println!("{:?}", path);
-            path.1[0].determine_direction(&path.1[1]).to_string()
-        }
+        Some(path) => path.1[0].determine_direction(&path.1[1]).to_string(),
         None => Direction::Up.to_string(),
     }
 }

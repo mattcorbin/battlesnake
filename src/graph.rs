@@ -100,6 +100,8 @@ pub fn is_goal(space: Space) -> bool {
 pub fn calculate_weight(input: (Space, Space, &usize)) -> usize {
     if input.1.space_type == SpaceType::Occupied {
         100
+    } else if input.1.space_type == SpaceType::Occupied {
+        10
     } else {
         0
     }
