@@ -119,5 +119,28 @@ pub fn compute_move(game: &GameRequest) -> String {
             }
         }
     }
+
+    //  If the head of a Battlesnake is within the Hazard Sauce,
+    // its health points will more rapidly decline, losing 15 health each turn.
+    // So you don't have to strictly avoid it but lets strictly try to avoid it
+    for hazard in &game.board.hazards {
+        if !is_adjacent(&head_loc, &hazard) {
+            continue;
+        }
+        if head_loc.x - hazard.x == 1 {
+            println!("left false due to hazard");
+            potential_directions.left = false
+        } else if head_loc.x - hazard.x == -1 {
+            println!("right false due to hazard");
+            potential_directions.right = false
+        }
+        if head_loc.y - hazard.y == 1 {
+            println!("down false due to hazard");
+            potential_directions.down = false
+        } else if head_loc.y - hazard.y == -1 {
+            println!("up false due to hazard");
+            potential_directions.up = false
+        }
+    }
     find_move(moves, potential_directions, &game)
 }
