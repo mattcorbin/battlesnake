@@ -1,7 +1,7 @@
 use petgraph::algo::astar;
 use petgraph::graphmap::UnGraphMap;
 
-use crate::graph::{calculate_weight, is_goal, Space, SpaceType};
+use crate::graph::{calculate_weight, find_nearest_food, is_goal, Space, SpaceType};
 use crate::GameRequest;
 
 pub enum Direction {
@@ -28,7 +28,14 @@ pub fn compute_move(game: &GameRequest) -> String {
         location: game.you.head,
         space_type: SpaceType::Occupied,
     };
-    match astar(&graph, start, is_goal, calculate_weight, |_| 0) {
+    let nearest_food = find_nearest_food(start, &graph);
+    match astar(
+        &graph,
+        start,
+        |node| is_goal(nearest_food, node),
+        calculate_weight,
+        |_| 0,
+    ) {
         Some(path) => path.1[0].determine_direction(&path.1[1]).to_string(),
         None => Direction::Up.to_string(),
     }

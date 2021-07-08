@@ -11,6 +11,7 @@ pub enum SpaceType {
     Food,
     Hazard,
     Occupied,
+    EnemySnakeHead,
 }
 
 #[derive(Debug, Copy, Clone, Ord, PartialOrd, Eq, PartialEq, Hash)]
@@ -67,6 +68,10 @@ impl From<&Board> for UnGraphMap<Space, usize> {
                     .expect("segment coord must exist in map");
                 space.space_type = SpaceType::Occupied;
             }
+            let mut space = space_map
+                .get_mut(&snake.head)
+                .expect("head coord must exist in map");
+            space.space_type = SpaceType::EnemySnakeHead;
         }
 
         for x in 0..board.width {
@@ -93,16 +98,41 @@ impl From<&Board> for UnGraphMap<Space, usize> {
     }
 }
 
-pub fn is_goal(space: Space) -> bool {
-    return space.space_type == SpaceType::Food;
+pub fn is_goal(nearest_food: Space, space: Space) -> bool {
+    return nearest_food.location == space.location;
 }
 
 pub fn calculate_weight(input: (Space, Space, &usize)) -> usize {
     if input.1.space_type == SpaceType::Occupied {
         100
-    } else if input.1.space_type == SpaceType::Occupied {
+    } else if input.1.space_type == SpaceType::EnemySnakeHead {
         10
+    } else if input.1.space_type == SpaceType::Hazard {
+        1
     } else {
         0
     }
+}
+
+pub fn find_nearest_food(start: Space, graph: &UnGraphMap<Space, usize>) -> Space {
+    let mut min_dist: f64 = -1.0;
+    let mut nearest_food: Space = Space {
+        location: Coord { x: 0, y: 0 },
+        space_type: SpaceType::Empty,
+    };
+    for node in graph.nodes() {
+        if node.space_type == SpaceType::Food {
+            let diff_of_squares = (node.location.x - start.location.x).pow(2)
+                + (node.location.y - start.location.y).pow(2);
+            let distance = f64::sqrt(diff_of_squares as f64);
+            if min_dist < 0.0 {
+                min_dist = distance;
+                nearest_food = node;
+            } else if distance < min_dist {
+                min_dist = distance;
+                nearest_food = node;
+            }
+        }
+    }
+    nearest_food
 }
