@@ -24,17 +24,15 @@ impl Space {
     pub fn determine_direction(&self, other: &Space) -> Direction {
         let mut direction = Direction::Up;
         if self.location.x == other.location.x {
-            if self.location.y - other.location.y < 0 {
-                direction = Direction::Up;
-            } else if self.location.y - other.location.y > 0 {
-                direction = Direction::Down;
-            }
+            match self.location.y.lt(&other.location.y) {
+                true => direction = Direction::Up,
+                false => direction = Direction::Down,
+            };
         } else if self.location.y == other.location.y {
-            if self.location.x - other.location.x < 0 {
-                direction = Direction::Right;
-            } else if self.location.x - other.location.x > 0 {
-                direction = Direction::Left;
-            }
+            match self.location.x.lt(&other.location.x) {
+                true => Direction::Right,
+                false => Direction::Left,
+            };
         }
         direction
     }
@@ -85,11 +83,8 @@ impl From<&Board> for UnGraphMap<Space, usize> {
                     Coord { x, y: y + 1 },
                 ];
                 for spot in adjacent_spots.iter() {
-                    match space_map.get(spot) {
-                        Some(node) => {
-                            graph.add_edge(*current_node, *node, 0);
-                        }
-                        None => (),
+                    if let Some(node) = space_map.get(spot) {
+                        graph.add_edge(*current_node, *node, 0);
                     }
                 }
             }
@@ -99,7 +94,7 @@ impl From<&Board> for UnGraphMap<Space, usize> {
 }
 
 pub fn is_goal(nearest_food: Space, space: Space) -> bool {
-    return nearest_food.location == space.location;
+    nearest_food.location == space.location
 }
 
 pub fn calculate_weight(input: (Space, Space, &usize)) -> usize {
@@ -125,10 +120,7 @@ pub fn find_nearest_food(start: Space, graph: &UnGraphMap<Space, usize>) -> Spac
             let diff_of_squares = (node.location.x - start.location.x).pow(2)
                 + (node.location.y - start.location.y).pow(2);
             let distance = f64::sqrt(diff_of_squares as f64);
-            if min_dist < 0.0 {
-                min_dist = distance;
-                nearest_food = node;
-            } else if distance < min_dist {
+            if min_dist < 0.0 || distance < min_dist {
                 min_dist = distance;
                 nearest_food = node;
             }
