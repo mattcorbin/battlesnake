@@ -27,8 +27,8 @@ impl Space {
         let mut direction = Direction::Up;
         if self.location.x == other.location.x {
             match (self.location.y).cmp(&other.location.y) {
-                Ordering::Greater => direction = Direction::Up,
-                Ordering::Less => direction = Direction::Down,
+                Ordering::Greater => direction = Direction::Down,
+                Ordering::Less => direction = Direction::Up,
                 Ordering::Equal => direction = Direction::Up
                 
             }
@@ -36,7 +36,7 @@ impl Space {
             match (self.location.x).cmp(&other.location.x) {
                 Ordering::Greater => direction = Direction::Left,
                 Ordering::Less => direction = Direction::Right,
-                Ordering::Equal => direction = Direction::Left
+                Ordering::Equal => direction = Direction::Right
                 
             }
         }
