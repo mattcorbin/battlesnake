@@ -42,6 +42,13 @@ impl Space {
         }
         direction
     }
+
+}
+
+impl std::fmt::Display for Space {
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+        write!(f, "({},{})", self.location.x, self.location.y)
+    }
 }
 
 impl From<&Board> for UnGraphMap<Space, usize> {
@@ -105,13 +112,13 @@ pub fn is_goal(nearest_food: Space, space: Space) -> bool {
 
 pub fn calculate_weight(input: (Space, Space, &usize)) -> usize {
     if input.1.space_type == SpaceType::Occupied {
-        100
+        9001
     } else if input.1.space_type == SpaceType::EnemySnakeHead {
-        10
+        90
     } else if input.1.space_type == SpaceType::Hazard {
-        1
+        2
     } else {
-        0
+        1
     }
 }
 
@@ -121,8 +128,10 @@ pub fn find_nearest_food(start: Space, graph: &UnGraphMap<Space, usize>) -> Spac
         location: Coord { x: 0, y: 0 },
         space_type: SpaceType::Empty,
     };
+    let mut foods = Vec::new();
     for node in graph.nodes() {
         if node.space_type == SpaceType::Food {
+            foods.push(node);
             let diff_of_squares = (node.location.x - start.location.x).pow(2)
                 + (node.location.y - start.location.y).pow(2);
             let distance = f64::sqrt(diff_of_squares as f64);
@@ -132,5 +141,11 @@ pub fn find_nearest_food(start: Space, graph: &UnGraphMap<Space, usize>) -> Spac
             }
         }
     }
+    println!("I'm at {}", start);
+    print!("And the foods are at:");
+    for f in foods {
+        print!("{}",f);
+    }
+    println!("\nSo I'm heading towards {}", nearest_food);
     nearest_food
 }
