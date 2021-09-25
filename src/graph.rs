@@ -1,8 +1,7 @@
+use std::cmp::Ordering;
 use std::collections::HashMap;
 
 use petgraph::graphmap::UnGraphMap;
-
-use std::cmp::Ordering;
 
 use crate::moves::Direction;
 use crate::{Board, Coord};
@@ -22,6 +21,12 @@ pub struct Space {
     pub space_type: SpaceType,
 }
 
+impl std::fmt::Display for Space {
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+        write!(f, "({},{})", self.location.x, self.location.y)
+    }
+}
+
 impl Space {
     pub fn determine_direction(&self, other: &Space) -> Direction {
         let mut direction = Direction::Up;
@@ -29,15 +34,13 @@ impl Space {
             match (self.location.y).cmp(&other.location.y) {
                 Ordering::Greater => direction = Direction::Down,
                 Ordering::Less => direction = Direction::Up,
-                Ordering::Equal => direction = Direction::Up
-                
+                Ordering::Equal => direction = Direction::Up,
             }
         } else if self.location.y == other.location.y {
             match (self.location.x).cmp(&other.location.x) {
                 Ordering::Greater => direction = Direction::Left,
                 Ordering::Less => direction = Direction::Right,
-                Ordering::Equal => direction = Direction::Right
-                
+                Ordering::Equal => direction = Direction::Right,
             }
         }
         direction
@@ -82,6 +85,9 @@ impl From<&Board> for UnGraphMap<Space, usize> {
             for y in 0..board.height {
                 let coord = Coord { x, y };
                 let current_node = space_map.get(&coord).expect("coord must exist in map");
+                if current_node.space_type == SpaceType::Occupied {
+                    continue;
+                }
                 let adjacent_spots = vec![
                     Coord { x: x - 1, y },
                     Coord { x: x + 1, y },
@@ -90,28 +96,15 @@ impl From<&Board> for UnGraphMap<Space, usize> {
                 ];
                 for spot in adjacent_spots.iter() {
                     if let Some(node) = space_map.get(spot) {
+                        if node.space_type == SpaceType::Occupied {
+                            continue;
+                        }
                         graph.add_edge(*current_node, *node, 0);
                     }
                 }
             }
         }
         graph
-    }
-}
-
-pub fn is_goal(nearest_food: Space, space: Space) -> bool {
-    nearest_food.location == space.location
-}
-
-pub fn calculate_weight(input: (Space, Space, &usize)) -> usize {
-    if input.1.space_type == SpaceType::Occupied {
-        100
-    } else if input.1.space_type == SpaceType::EnemySnakeHead {
-        10
-    } else if input.1.space_type == SpaceType::Hazard {
-        1
-    } else {
-        0
     }
 }
 

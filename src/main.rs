@@ -92,9 +92,9 @@ fn index() -> status::Custom<content::Json<String>> {
     let battlesnake_info_response = BattlesnakeInfoResponse {
         apiversion: "1".to_string(),
         author: "mattcorbin".to_string(),
-        color: "#092de3".to_string(),
-        head: "pixel".to_string(),
-        tail: "pixel".to_string(),
+        color: "#f05627".to_string(),
+        head: "scarf".to_string(),
+        tail: "round-bum".to_string(),
         version: "0.0.1".to_string(),
     };
     status::Custom(
