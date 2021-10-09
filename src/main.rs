@@ -95,7 +95,7 @@ fn index() -> status::Custom<content::Json<String>> {
         color: "#f05627".to_string(),
         head: "scarf".to_string(),
         tail: "round-bum".to_string(),
-        version: "0.0.1".to_string(),
+        version: "1.0.0".to_string(),
     };
     status::Custom(
         Status::Ok,
@@ -113,9 +113,10 @@ fn start(_game_request: Json<GameRequest>) {}
 fn mv(game_request: Json<GameRequest>) -> status::Custom<content::Json<String>> {
     let mv = compute_move(&game_request.into_inner());
     let mut rng = thread_rng();
-    let mut shout = None;
-    if rng.gen_range(0..49) == 0 {
-        shout = Some("Hiss!".to_string());
+    let shout;
+    match rng.gen_range(0..10) {
+        0 => shout = Some("bork bork".to_string()),
+        _ => shout = None,
     }
     let move_response = MoveResponse { mv, shout };
     status::Custom(

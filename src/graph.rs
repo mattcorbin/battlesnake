@@ -4,7 +4,7 @@ use std::collections::HashMap;
 use petgraph::graphmap::UnGraphMap;
 
 use crate::moves::Direction;
-use crate::{Board, Coord};
+use crate::{Battlesnake, Board, Coord};
 
 #[derive(Debug, Copy, Clone, Ord, PartialOrd, Eq, PartialEq, Hash)]
 pub enum SpaceType {
@@ -47,6 +47,16 @@ impl Space {
     }
 }
 
+fn can_win_fight(board: &Board, enemy_snake_head: &Coord) -> bool {
+    board.snakes[0].health
+        > board
+            .snakes
+            .iter()
+            .filter(|x| x.head == *enemy_snake_head)
+            .collect::<Vec<&Battlesnake>>()[0]
+            .health
+}
+
 impl From<&Board> for UnGraphMap<Space, usize> {
     fn from(board: &Board) -> Self {
         let mut graph = UnGraphMap::new();
@@ -80,6 +90,12 @@ impl From<&Board> for UnGraphMap<Space, usize> {
                 .expect("head coord must exist in map");
             space.space_type = SpaceType::EnemySnakeHead;
         }
+        for hazard in &board.hazards {
+            let mut space = space_map
+                .get_mut(hazard)
+                .expect("segment coord must exist in map");
+            space.space_type = SpaceType::Hazard;
+        }
 
         for x in 0..board.width {
             for y in 0..board.height {
@@ -96,10 +112,20 @@ impl From<&Board> for UnGraphMap<Space, usize> {
                 ];
                 for spot in adjacent_spots.iter() {
                     if let Some(node) = space_map.get(spot) {
-                        if node.space_type == SpaceType::Occupied {
-                            continue;
+                        let weight;
+                        match node.space_type {
+                            SpaceType::Occupied => continue,
+                            SpaceType::EnemySnakeHead => {
+                                if can_win_fight(&board, &node.location) {
+                                    weight = 0;
+                                } else {
+                                    weight = 2;
+                                }
+                            }
+                            SpaceType::Hazard => weight = 1,
+                            _ => weight = 0,
                         }
-                        graph.add_edge(*current_node, *node, 0);
+                        graph.add_edge(*current_node, *node, weight);
                     }
                 }
             }
